@@ -1,0 +1,50 @@
+---
+
+- name: Enable Gluster repos 
+  rhsm_repository:
+    name: "{{ item }}"
+    state: enabled
+  with_items:
+    - rhel-7-server-rpms
+    - rh-gluster-3-for-rhel-7-server-rpms
+    - rhel-7-server-ansible-2-rpms
+  tags: rhv-gluster
+
+- name: Install gluster
+  yum:
+    name: 
+      - redhat-storage-server
+      - gdeploy
+    state: installed
+  tags: rhv-gluster
+
+- name: Copy pub key across
+  copy:
+    src: /root/.ssh/id_rsa
+    dest: /root/.ssh
+    mode: 0600
+    owner: root
+    group: root
+  tags: rhv-gluster
+
+- name: Configure ansible.cfg to prevent host key checking
+  ini_file:
+    path: /etc/ansible/ansible.cfg
+    section: defaults
+    option: host_key_checking
+    value: false
+  tags: rhv-gluster
+
+- name: Template out gluster.conf for gdeploy
+  template:
+    src: gluster.conf.j2
+    dest: /root/gluster.conf
+  tags: rhv-gluster
+    
+- name: Run gdeploy
+  shell: gdeploy -c /root/gluster.conf
+  tags: rhv-gluster
+
+- name: Configure permissions on volume
+  shell: gluster volume set glustervol owner-uid 36 && gluster volume set glustervol owner-gid 36
+  tags: rhv-gluster

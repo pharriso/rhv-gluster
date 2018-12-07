@@ -1,0 +1,17 @@
+[hosts]
+{{ ansible_host }}
+
+
+[backend-setup]
+devices=/dev/vdb
+vgs=rhv-vg
+pools=rhv-pool
+lvs=rhv-lv
+mountpoints=/gluster/brick1
+brick_dirs=glusterbrick1
+
+[volume]
+action=create
+volname=glustervol
+transport=tcp,rdma
+force=yes
